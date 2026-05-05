@@ -1,0 +1,210 @@
+# ShelfSense RAG Knowledge Base
+# Restaurant Inventory & Demand Forecasting Reference Document
+# Used by ShelfSense AI Agent to make accurate, industry-grounded recommendations
+
+========================================================
+SECTION 1: STANDARD PORTION-TO-INGREDIENT RATIOS
+========================================================
+These are industry-standard quantities of raw ingredients needed per serving.
+Use these to translate forecasted menu item demand into ingredient order quantities.
+
+BURGERS & SANDWICHES
+- Burger (standard):        ground beef 0.33 lbs | bun 1 unit | lettuce 0.05 lbs | tomato 0.08 lbs | onion 0.03 lbs
+- Cheeseburger:             ground beef 0.33 lbs | bun 1 unit | cheese 1 slice | lettuce 0.05 lbs | tomato 0.08 lbs
+- Double burger:            ground beef 0.66 lbs | bun 1 unit | lettuce 0.05 lbs | tomato 0.08 lbs
+- Grilled chicken sandwich: chicken breast 1 unit (6-8 oz) | bun 1 unit | lettuce 0.04 lbs | tomato 0.06 lbs
+- BLT sandwich:             bacon 3 strips | bread 2 slices | lettuce 0.04 lbs | tomato 0.08 lbs
+
+PASTA & ITALIAN
+- Pasta (standard):         dry pasta 0.25 lbs | sauce 0.5 cups
+- Spaghetti bolognese:      dry pasta 0.25 lbs | ground beef 0.2 lbs | tomato sauce 0.5 cups
+- Fettuccine alfredo:       dry pasta 0.25 lbs | heavy cream 0.25 cups | parmesan 0.04 lbs | butter 1 tbsp
+- Lasagna (slice):          dry pasta 0.15 lbs | ground beef 0.15 lbs | ricotta 0.15 lbs | mozzarella 0.1 lbs
+
+SALADS
+- Caesar salad:             romaine 0.3 lbs | parmesan 0.03 lbs | croutons 0.05 lbs | dressing 2 tbsp
+- Garden salad:             mixed greens 0.2 lbs | tomato 0.05 lbs | cucumber 0.05 lbs | dressing 2 tbsp
+- Greek salad:              romaine 0.2 lbs | feta 0.05 lbs | olives 0.03 lbs | tomato 0.05 lbs | cucumber 0.05 lbs
+
+SIDES
+- French fries (standard):  potatoes 0.4 lbs | oil 0.05 lbs
+- Onion rings:              onion 0.25 lbs | batter mix 0.1 lbs | oil 0.05 lbs
+- Coleslaw:                 cabbage 0.15 lbs | mayo 1 tbsp | carrot 0.03 lbs
+
+BEVERAGES & DESSERTS
+- Milkshake:                milk 0.1 gallons | ice cream 0.2 lbs | flavoring 1 tbsp
+- Soft drink (fountain):    syrup 0.02 gallons | CO2 (tracked separately)
+- Coffee (drip):            ground coffee 0.04 lbs | water (tracked separately)
+- Smoothie:                 frozen fruit 0.3 lbs | yogurt 0.1 lbs | juice 0.1 cups
+
+PROTEINS (raw weight per serving)
+- Steak (8 oz):             beef 0.5 lbs
+- Salmon fillet:            salmon 0.4 lbs
+- Shrimp (standard):        raw shrimp 0.3 lbs
+- Pork chop:                pork 0.4 lbs
+- Whole chicken (half):     chicken 0.75 lbs
+
+========================================================
+SECTION 2: PAR LEVELS & REORDER THRESHOLDS
+========================================================
+PAR (Periodic Automatic Replacement) level = minimum stock needed to last until next delivery.
+Always keep stock ABOVE par level. If stock falls below par, flag as CRITICAL.
+
+HOW TO CALCULATE PAR LEVEL:
+  PAR = (Daily Usage × Lead Time in Days) + Safety Buffer (20% of weekly usage)
+
+TYPICAL LEAD TIMES BY SUPPLIER TYPE:
+- Broadline distributor (Sysco, US Foods):  2-3 days
+- Local produce vendor:                     1-2 days
+- Meat supplier:                            1-2 days
+- Dairy supplier:                           1-2 days
+- Dry goods / pantry:                       3-5 days
+
+SAFETY BUFFER GUIDELINES:
+- Perishables (meat, dairy, fresh produce):  add 15-20% buffer to order quantity
+- Dry goods (pasta, canned goods):           add 10% buffer
+- High-variability items (weekend specials): add 25% buffer
+
+PRIORITY FLAGS:
+- CRITICAL:  current stock < 20% of forecasted weekly need → order immediately
+- HIGH:      current stock < 50% of forecasted weekly need → order this cycle
+- NORMAL:    current stock between 50-100% of need → order standard quantity
+- SKIP:      current stock > 150% of weekly need → do not order, risk of spoilage
+
+========================================================
+SECTION 3: DEMAND MULTIPLIERS BY EVENT & CONDITION
+========================================================
+Apply these multipliers to baseline weekly demand when relevant conditions exist.
+Multipliers are cumulative — a holiday on a rainy day = holiday multiplier × weather multiplier.
+
+SPORTS EVENTS (home games)
+- NFL home game (Sunday):           +30 to +50% traffic spike, especially wings, burgers, beer
+- NBA / NHL home game (weeknight):  +20 to +35% spike during game hours
+- College football home game:       +25 to +45% spike, especially near campus areas
+- Championship / playoff game:      +50 to +80% spike — treat as major event
+- Away games (sports bar):          +15 to +25% for sports bars specifically
+
+CONCERTS & FESTIVALS
+- Major concert at nearby venue:    +20 to +40% pre/post show (2hr window)
+- Food festival in area:            -10 to -20% (people eating at festival instead)
+- Street festival / block party:    +10 to +20% if restaurant is on route
+- Convention / trade show:          +15 to +30% for lunch rush, corporate crowd
+
+HOLIDAYS & SEASONAL
+- Valentine's Day:                  +40 to +60% for dinner service, less for lunch
+- Mother's Day:                     +50 to +70% — highest restaurant day of the year
+- Father's Day:                     +30 to +45%
+- New Year's Eve:                   +60 to +80% for dinner, reservations-heavy
+- Thanksgiving week (Mon-Wed):      -20 to -30% as families cook at home
+- Christmas Eve / Christmas Day:    -40 to -60% unless holiday-specific menu
+- Fourth of July:                   -15 to -25% for lunch, +20% for dinner/bar
+- Labor Day weekend:                +15 to +25%
+- Spring Break (local schools):     +20 to +35% for family-friendly restaurants
+
+WEATHER CONDITIONS
+- Heavy rain / thunderstorm:        -15 to -25% dine-in, +10 to +20% delivery orders
+- Light rain / overcast:            -5 to -10% dine-in
+- Extreme heat (>95°F):             -10 to -15% lunch, -5% dinner
+- Cold snap / snowstorm:            -25 to -40% dine-in
+- Perfect weather (70-80°F sunny):  +10 to +15%, especially for patios
+- First warm day of spring:         +20 to +30% patio effect
+
+OTHER FACTORS
+- School in session (weekday lunch): Slight boost for nearby restaurants
+- School holiday / spring break:     +15 to +25% for family restaurants, varies
+- Local road closure near restaurant: -20 to -35% depending on foot traffic dependency
+- New competitor opened nearby:      -10 to -20% adjustment (monitor over 4 weeks)
+- Local business / office closed:    -10 to -20% for lunch if office-dependent
+
+========================================================
+SECTION 4: FOOD WASTE BENCHMARKS
+========================================================
+Industry averages for food waste. Use to flag over-ordering risks.
+
+ACCEPTABLE WASTE RATES BY CATEGORY:
+- Fresh produce (lettuce, tomatoes, herbs):   8 to 15% waste rate
+- Proteins (meat, poultry, seafood):          3 to 8% waste rate
+- Dairy (milk, cream, cheese):                5 to 10% waste rate
+- Dry goods (pasta, rice, flour):             1 to 3% waste rate
+- Prepared/cooked items held overnight:       15 to 25% waste rate
+
+SHELF LIFE REFERENCE:
+- Ground beef (refrigerated):     1-2 days raw, 3-4 days cooked
+- Chicken breast (refrigerated):  1-2 days raw, 3-4 days cooked
+- Leafy greens (romaine, lettuce): 5-7 days refrigerated
+- Tomatoes:                       5-7 days at room temp, 2 weeks refrigerated
+- Milk:                           5-7 days after opening
+- Hard cheese (parmesan):         3-4 weeks refrigerated after opening
+- Dry pasta:                      1-2 years sealed, use within 1 year opened
+- Potatoes:                       3-5 weeks in cool dark storage
+
+WASTE WARNING TRIGGERS:
+- Order quantity > 130% of forecasted need for perishables → flag as waste risk
+- Item has been on "skip" list for 2+ consecutive weeks → consider removing from menu
+- Inventory of perishable item > 3 days worth of projected daily usage → order less
+
+========================================================
+SECTION 5: RESTAURANT INDUSTRY TERMINOLOGY
+========================================================
+Key terms ShelfSense uses when communicating with restaurant owners and managers.
+
+86'd / Getting 86'd:    Running out of a menu item mid-service. "We got 86'd on salmon."
+                        ShelfSense goal: prevent all 86'd situations.
+
+PAR level:              Periodic Automatic Replacement — the minimum stock level that
+                        triggers a reorder. Running below PAR = reorder immediately.
+
+Mise en place:          French for "everything in its place." Refers to having all
+                        ingredients prepped and ready before service begins.
+
+Prep list:              Daily list of items that need to be prepped before service
+                        (chopped, marinated, portioned, etc.)
+
+Cover:                  One customer served = one cover. "We did 200 covers on Friday."
+                        Used to estimate ingredient needs per service period.
+
+Turn / Table turn:      How many times a table is seated in one service period.
+                        Higher turns = more covers = more ingredient usage.
+
+Food cost percentage:   (Cost of ingredients sold / Revenue) × 100.
+                        Industry target: 28-35% for most restaurants.
+
+Yield:                  Usable portion after trimming/cooking. Example: 1 lb of chicken
+                        breast yields about 0.85 lbs after trimming. Account for yield
+                        loss when calculating order quantities for proteins.
+
+Daypart:                A segment of the day (breakfast, lunch, dinner, late night).
+                        Demand forecasting should account for which dayparts are busiest.
+
+FIFO:                   First In, First Out — older stock should always be used before
+                        newer stock to reduce spoilage. Critical for perishables.
+
+Comps / Voids:          Free items given to customers (comps) or cancelled orders (voids).
+                        Typically adds 1-3% to ingredient usage beyond menu sales data.
+
+Plate waste:            Food left uneaten on plates. High plate waste on a menu item
+                        suggests portion sizes may be too large.
+
+========================================================
+SECTION 6: ORDERING BEST PRACTICES
+========================================================
+
+ORDERING FREQUENCY GUIDELINES:
+- Proteins (meat, seafood):         Order 3× per week or more if high volume
+- Fresh produce:                    Order 2-3× per week
+- Dairy:                            Order 2× per week
+- Dry goods & non-perishables:      Order 1× per week
+- Paper goods & supplies:           Order 1-2× per month
+
+COST-SAVING TIPS TO MENTION:
+- Buying proteins in bulk (case quantities) typically saves 10-20% vs. individual units
+- Seasonal produce is 20-40% cheaper and higher quality than out-of-season
+- Consolidating orders to fewer supplier deliveries reduces per-delivery fees
+- Comparing 2-3 supplier quotes monthly can reduce food costs by 5-10%
+
+COMMON ORDERING MISTAKES TO FLAG:
+- Ordering perishables for more than 3-4 days of projected use
+- Not adjusting orders for known slow periods (holidays, weather events)
+- Ordering by habit (same quantity every week) instead of based on forecast
+- Not accounting for upcoming menu specials that will spike specific ingredient demand
+- Forgetting to deduct current on-hand stock before placing an order
